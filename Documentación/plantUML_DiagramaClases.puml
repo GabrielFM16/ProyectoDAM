@@ -1,0 +1,520 @@
+@startuml
+!theme plain
+skinparam classAttributeIconSize 0
+
+' ====================================================================================================
+' Paquete de Controladores (Controller Layer)
+' ====================================================================================================
+package "com.cesur.biblioteca.controlador" {
+    class UsuarioController {
+        - usuarioService: UsuarioService
+        + UsuarioController(usuarioService: UsuarioService)
+        + añadirUsuario(nombre: String, apellidos: String, email: String, telefono: String): Usuario
+        + actualizarUsuario(usuario: Usuario): void
+        + buscarUsuarioPorId(id: int): Usuario
+        + buscarUsuarioPorEmail(email: String): Usuario
+        + obtenerTodosUsuarios(): List<Usuario>
+        + activarUsuario(id: int): void
+        + desactivarUsuario(id: int): void
+        + sancionarUsuario(id: int, fechaFinSancion: Date): void
+        + eliminarSancionUsuario(id: int): void
+        + eliminarUsuario(id: int): boolean
+        + obtenerTodosUsuariosActivos(): List<Usuario>
+        + obtenerTodosUsuariosSancionados(): List<Usuario>
+    }
+
+    class ReservaController {
+        - reservaService: ReservaService
+        + ReservaController(reservaService: ReservaService)
+        + crearReserva(libroId: int, usuarioId: int, fechaReserva: Date): Reserva
+        + buscarReservaPorId(id: int): Reserva
+        + obtenerReservasPorLibroID(libroId: int): List<Reserva>
+        + obtenerReservasPorLibroIsbn(libroIsbn: String): List<Reserva>
+        + obtenerReservasPorUsuarioID(usuarioId: int): List<Reserva>
+        + obtenerReservasPorUsuarioEmail(usuarioEmail: String): List<Reserva>
+        + obtenerTodasLasReservas(): List<Reserva>
+        + actualizarReserva(reserva: Reserva, CambioEstado: String): void
+        + cancelarReserva(id: int): void
+        + finalizarReserva(id: int): void
+        + eliminarReserva(id: int): boolean
+        + registrarPrestamo(libroId: int, usuarioId: int, fechaDevolucionPrevista: Date): void
+        + registrarDevolucion(reservaId: int, fechaDevolucionReal: Date): void
+    }
+
+    class LibroController {
+        - libroService: LibroService
+        + LibroController(libroService: LibroService)
+        + añadirLibro(titulo: String, autor: String, isbn: String, genero: String, anioPublicacion: int, numEjemplares: int): Libro
+        + actualizarLibro(libro: Libro): void
+        + buscarLibroPorId(id: int): Libro
+        + buscarLibroPorIsbn(isbn: String): Libro
+        + obtenerTodosLosLibros(): List<Libro>
+        + obtenerLibrosDisponibles(): List<Libro>
+        + eliminarLibro(id: int): boolean
+        + marcarLibroDisponible(id: int): void
+        + marcarLibroNoDisponible(id: int): void
+    }
+}
+
+
+' ====================================================================================================
+' Paquete de Servicio (Service Layer)
+' ====================================================================================================
+package "com.cesur.biblioteca.servicio" {
+    interface UsuarioServiceInterface {
+        + añadirUsuario(usuario: Usuario): void
+        + buscarUsuarioPorId(id: int): Usuario
+        + buscarUsuarioPorEmail(email: String): Usuario
+        + obtenerTodosUsuarios(): List<Usuario>
+        + actualizarUsuario(usuario: Usuario): void
+        + eliminarUsuario(id: int): boolean
+        + activarUsuario(id: int): void
+        + desactivarUsuario(id: int): void
+        + sancionarUsuario(id: int, fechaFinSancion: Date): void
+        + eliminarSancionUsuario(id: int): void
+        + obtenerTodosUsuariosActivos(): List<Usuario>
+        + obtenerTodosUsuariosSancionados(): List<Usuario>
+    }
+
+    class UsuarioService implements UsuarioServiceInterface {
+        - usuarioDAO: UsuarioDAO
+        - reservaDAO: ReservaDAO ' Dependencia adicional para validar reservas en operaciones de usuario
+        + UsuarioService(usuarioDAO: UsuarioDAO, reservaDAO: ReservaDAO)
+        + añadirUsuario(usuario: Usuario): void
+        + buscarUsuarioPorId(id: int): Usuario
+        + buscarUsuarioPorEmail(email: String): Usuario
+        + obtenerTodosUsuarios(): List<Usuario>
+        + actualizarUsuario(usuario: Usuario): void
+        + eliminarUsuario(id: int): boolean
+        + activarUsuario(id: int): void
+        + desactivarUsuario(id: int): void
+        + sancionarUsuario(id: int, fechaFinSancion: Date): void
+        + eliminarSancionUsuario(id: int): void
+        + obtenerTodosUsuariosActivos(): List<Usuario>
+        + obtenerTodosUsuariosSancionados(): List<Usuario>
+    }
+
+    interface ReservaServiceInterface {
+        + crearReserva(reserva: Reserva): void
+        + buscarReservaPorId(id: int): Reserva
+        + obtenerReservasPorLibroID(libroId: int): List<Reserva>
+        + obtenerReservasPorLibroIsbn(libroIsbn: String): List<Reserva>
+        + obtenerReservasPorUsuarioID(usuarioId: int): List<Reserva>
+        + obtenerReservasPorUsuarioEmail(usuarioEmail: String): List<Reserva>
+        + obtenerTodasLasReservas(): List<Reserva>
+        + actualizarReserva(reserva: Reserva, CambioEstado: String): void
+        + cancelarReserva(id: int): void
+        + finalizarReserva(id: int): void
+        + eliminarReserva(id: int): boolean
+        + registrarPrestamo(libroId: int, usuarioId: int, fechaDevolucionPrevista: Date): void
+        + registrarDevolucion(reservaId: int, fechaDevolucionReal: Date): void
+    }
+
+    class ReservaService implements ReservaServiceInterface {
+        - reservaDAO: ReservaDAO
+        - libroService: LibroService
+        - usuarioService: UsuarioService
+        + ReservaService(reservaDAO: ReservaDAO, libroService: LibroService, usuarioService: UsuarioService)
+        + crearReserva(reserva: Reserva): void
+        + buscarReservaPorId(id: int): Reserva
+        + obtenerReservasPorLibroID(libroId: int): List<Reserva>
+        + obtenerReservasPorLibroIsbn(libroIsbn: String): List<Reserva>
+        + obtenerReservasPorUsuarioID(usuarioId: int): List<Reserva>
+        + obtenerReservasPorUsuarioEmail(usuarioEmail: String): List<Reserva>
+        + obtenerTodasLasReservas(): List<Reserva>
+        + actualizarReserva(reserva: Reserva, CambioEstado: String): void
+        + cancelarReserva(id: int): void
+        + finalizarReserva(id: int): void
+        + eliminarReserva(id: int): boolean
+        + registrarPrestamo(libroId: int, usuarioId: int, fechaDevolucionPrevista: Date): void
+        + registrarDevolucion(reservaId: int, fechaDevolucionReal: Date): void
+    }
+
+    interface LibroServiceInterface {
+        + añadirLibro(libro: Libro): void
+        + buscarLibroPorId(id: int): Libro
+        + buscarLibroPorIsbn(isbn: String): Libro
+        + obtenerTodosLosLibros(): List<Libro>
+        + obtenerLibrosDisponibles(): List<Libro>
+        + actualizarLibro(libro: Libro): void
+        + eliminarLibro(id: int): boolean
+        + marcarLibroDisponible(libroId: int): void
+        + marcarLibroNoDisponible(libroId: int): void
+    }
+
+    class LibroService implements LibroServiceInterface {
+        - libroDAO: LibroDAO
+        + LibroService(libroDAO: LibroDAO)
+        + añadirLibro(libro: Libro): void
+        + buscarLibroPorId(id: int): Libro
+        + buscarLibroPorIsbn(isbn: String): Libro
+        + obtenerTodosLosLibros(): List<Libro>
+        + obtenerLibrosDisponibles(): List<Libro>
+        + actualizarLibro(libro: Libro): void
+        + eliminarLibro(id: int): boolean
+        + marcarLibroDisponible(libroId: int): void
+        + marcarLibroNoDisponible(libroId: int): void
+    }
+}
+
+
+' ====================================================================================================
+' Paquete de Acceso a Datos (DAO Layer)
+' ====================================================================================================
+package "com.cesur.biblioteca.dao" {
+    interface UsuarioDAOInterface {
+        + addUsuario(usuario: Usuario): void
+        + getUsuarioById(id: int): Usuario
+        + getUsuarioByEmail(email: String): Usuario
+        + getAllUsuarios(): List<Usuario>
+        + updateUsuario(usuario: Usuario): void
+        + deleteUsuario(id: int): boolean
+    }
+
+    class UsuarioDAO implements UsuarioDAOInterface {
+        + UsuarioDAO()
+        + addUsuario(usuario: Usuario): void
+        + getUsuarioById(id: int): Usuario
+        + getUsuarioByEmail(email: String): Usuario
+        + getAllUsuarios(): List<Usuario>
+        + updateUsuario(usuario: Usuario): void
+        + deleteUsuario(id: int): boolean
+    }
+
+    interface ReservaDAOInterface {
+        + addReserva(reserva: Reserva): void
+        + getReservaById(id: int): Reserva
+        + getReservasByLibroId(libroId: int): List<Reserva>
+        + getReservasByLibroIsbn(isbn: String): List<Reserva>
+        + getReservasByUsuarioId(usuarioId: int): List<Reserva>
+        + getReservasByUsuarioEmail(email: String): List<Reserva>
+        + getAllReservas(): List<Reserva>
+        + updateReserva(reserva: Reserva): void
+        + deleteReserva(id: int): boolean
+    }
+
+    class ReservaDAO implements ReservaDAOInterface {
+        + ReservaDAO()
+        + addReserva(reserva: Reserva): void
+        + getReservaById(id: int): Reserva
+        + getReservasByLibroId(libroId: int): List<Reserva>
+        + getReservasByLibroIsbn(isbn: String): List<Reserva>
+        + getReservasByUsuarioId(usuarioId: int): List<Reserva>
+        + getReservasByUsuarioEmail(email: String): List<Reserva>
+        + getAllReservas(): List<Reserva>
+        + updateReserva(reserva: Reserva): void
+        + deleteReserva(id: int): boolean
+    }
+
+    interface LibroDAOInterface {
+        + addLibro(libro: Libro): void
+        + getLibroById(id: int): Libro
+        + getLibroByIsbn(isbn: String): Libro
+        + getAllLibros(): List<Libro>
+        + updateLibro(libro: Libro): void
+        + deleteLibro(id: int): boolean
+    }
+
+    class LibroDAO implements LibroDAOInterface {
+        + LibroDAO()
+        + addLibro(libro: Libro): void
+        + getLibroById(id: int): Libro
+        + getLibroByIsbn(isbn: String): Libro
+        + getAllLibros(): List<Libro>
+        + updateLibro(libro: Libro): void
+        + deleteLibro(id: int): boolean
+    }
+
+    class ConexionBBDD {
+        - {static} URL: String
+        - {static} USER: String
+        - {static} PASSWORD: String
+        + {static} getConnection(): Connection
+        + {static} closeConnection(connection: Connection): void
+    }
+}
+
+
+' ====================================================================================================
+' Paquete de Modelo (Model Layer)
+' ====================================================================================================
+package "com.cesur.biblioteca.modelo" {
+    class Usuario {
+        - id: int
+        - nombre: String
+        - apellidos: String
+        - email: String
+        - telefono: String
+        - activo: boolean
+        - sancionado: boolean
+        - fechaFinSancion: Date
+        + Usuario()
+        + Usuario(id: int, nombre: String, apellidos: String, email: String, telefono: String, activo: boolean, sancionado: boolean, fechaFinSancion: Date)
+        + Usuario(nombre: String, apellidos: String, email: String, telefono: String, activo: boolean, sancionado: boolean, fechaFinSancion: Date)
+        + getId(): int
+        + setId(id: int): void
+        + getNombre(): String
+        + setNombre(nombre: String): void
+        + getApellidos(): String
+        + setApellidos(apellidos: String): void
+        + getEmail(): String
+        + setEmail(email: String): void
+        + getTelefono(): String
+        + setTelefono(telefono: String): void
+        + isActivo(): boolean
+        + setActivo(activo: boolean): void
+        + isSancionado(): boolean
+        + setSancionado(sancionado: boolean): void
+        + getFechaFinSancion(): Date
+        + setFechaFinSancion(fechaFinSancion: Date): void
+        + toString(): String
+    }
+
+    class Reserva {
+        - id: int
+        - libroId: int
+        - usuarioId: int
+        - fechaReserva: Date
+        - fechaDevolucionPrevista: Date
+        - fechaDevolucionReal: Date
+        - estado: String
+        + Reserva()
+        + Reserva(id: int, libroId: int, usuarioId: int, fechaReserva: Date, fechaDevolucionPrevista: Date, fechaDevolucionReal: Date, estado: String)
+        + Reserva(libroId: int, usuarioId: int, fechaReserva: Date, fechaDevolucionPrevista: Date, fechaDevolucionReal: Date, estado: String)
+        + getId(): int
+        + setId(id: int): void
+        + getLibroId(): int
+        + setLibroId(libroId: int): void
+        + getUsuarioId(): int
+        + setUsuarioId(usuarioId: int): void
+        + getFechaReserva(): Date
+        + setFechaReserva(fechaReserva: Date): void
+        + getFechaDevolucionPrevista(): Date
+        + setFechaDevolucionPrevista(fechaDevolucionPrevista: Date): void
+        + getFechaDevolucionReal(): Date
+        + setFechaDevolucionReal(fechaDevolucionReal: Date): void
+        + getEstado(): String
+        + setEstado(estado: String): void
+        + toString(): String
+    }
+
+    class Libro {
+        - id: int
+        - titulo: String
+        - autor: String
+        - isbn: String
+        - genero: String
+        - anioPublicacion: int
+        - disponible: boolean
+        - numEjemplares: int
+        + Libro()
+        + Libro(id: int, titulo: String, autor: String, isbn: String, genero: String, anioPublicacion: int, disponible: boolean, numEjemplares: int)
+        + Libro(titulo: String, autor: String, isbn: String, genero: String, anioPublicacion: int, disponible: boolean, numEjemplares: int)
+        + getId(): int
+        + setId(id: int): void
+        + getTitulo(): String
+        + setTitulo(titulo: String): void
+        + getAutor(): String
+        + setAutor(autor: String): void
+        + getIsbn(): String
+        + setIsbn(isbn: String): void
+        + getGenero(): String
+        + setGenero(genero: String): void
+        + getAnioPublicacion(): int
+        + setAnioPublicacion(anioPublicacion: int): void
+        + isDisponible(): boolean
+        + setDisponible(disponible: boolean): void
+        + getNumEjemplares(): int
+        + setNumEjemplares(numEjemplares: int): void
+        + toString(): String
+    }
+
+    enum EstadoReserva {
+        PENDIENTE
+        RETRASO
+        DEVUELTO
+        CANCELADO
+    }
+}
+
+
+' ====================================================================================================
+' Paquete de Vista (View Layer)
+' ====================================================================================================
+package "com.cesur.biblioteca.vista" {
+    class MainFrame {
+        - libroController: LibroController
+        - usuarioController: UsuarioController
+        - reservaController: ReservaController
+        - cardPanel: JPanel
+        - cardLayout: CardLayout
+        + MainFrame(libroController: LibroController, usuarioController: UsuarioController, reservaController: ReservaController)
+        + initUI(): void
+        + createMenuBar(): JMenuBar
+        + createPanels(): void
+        + showAboutDialog(): void
+    }
+
+    package "com.cesur.biblioteca.vista.usuario" {
+        class UsuarioManagementPanel {
+            - usuarioController: UsuarioController
+            - txtNombre, txtApellidos, txtEmail, txtTelefono: JTextField
+            - txtUsuarioIdBuscar, txtUsuarioEmailBuscar, txtFechaFinSancion: JTextField
+            - chkActivo: JCheckBox
+            - btnAdd, btnUpdate, btnDelete, btnActivate, btnDeactivate, btnSanction, btnRemoveSanction, btnSearchById, btnSearchByEmail, btnRefresh: JButton
+            - usuarioTable: JTable
+            - tableModel: DefaultTableModel
+            + UsuarioManagementPanel(usuarioController: UsuarioController)
+            - initComponents(): void
+            - loadUsuariosIntoTable(): void
+            - clearForm(): void
+            - cargarDatosUsuarioSeleccionado(): void
+        }
+
+        class UsuarioDetailDialog {
+            - usuario: Usuario
+            - lblNombre, lblApellidos, lblEmail, lblTelefono, lblActivo, lblSancionado, lblFinSancion, lblFoto: JLabel
+            + UsuarioDetailDialog(parent: Window, usuario: Usuario)
+            - initComponents(): void
+            - loadUsuarioData(): void
+        }
+    }
+
+    package "com.cesur.biblioteca.vista.libro" {
+        class LibroManagementPanel {
+            - libroController: LibroController
+            - txtTitulo, txtAutor, txtIsbn, txtGenero, txtAnioPublicacion, txtNumEjemplares: JTextField
+            - txtLibroIdBuscar, txtLibroIsbnBuscar: JTextField
+            - chkDisponible: JCheckBox
+            - btnAdd, btnUpdate, btnDelete, btnSearchById, btnSearchByIsbn, btnRefresh: JButton
+            - libroTable: JTable
+            - tableModel: DefaultTableModel
+            + LibroManagementPanel(libroController: LibroController)
+            - initComponents(): void
+            - loadLibrosIntoTable(): void
+            - clearForm(): void
+            - cargarDatosLibroSeleccionado(): void
+        }
+
+        class LibroDetailDialog {
+            - libro: Libro
+            - lblTitulo, lblAutor, lblIsbn, lblGenero, lblAnio, lblNumEjemplares, lblDisponible, lblImagen: JLabel
+            + LibroDetailDialog(parent: Window, libro: Libro)
+            - initComponents(): void
+            - loadLibroData(): void
+        }
+    }
+
+    package "com.cesur.biblioteca.vista.reserva" {
+        class ReservaManagementPanel {
+            - reservaController: ReservaController
+            - txtUsuarioId, txtLibroId: JTextField
+            - txtFechaReserva, txtFechaDevolucionPrevista, txtFechaDevolucionReal: JTextField
+            - cmbEstado: JComboBox<EstadoReserva>
+            - txtReservaIdBuscar, txtLibroISBNBuscar, txtUsuarioEmailBuscar, txtUsuarioIdBuscar, txtLibroIdBuscar: JTextField
+            - btnAdd, btnUpdate, btnCancelarReserva, btnFinalizarReserva, btnProcesarDevolucion, btnRefresh, btnDelete: JButton
+            - btnSearchById, btnSearchByISBN, btnSearchByEmail, btnSearchByUserId, btnSearchByBookId: JButton
+            - reservaTable: JTable
+            - tableModel: DefaultTableModel
+            + ReservaManagementPanel(reservaController: ReservaController)
+            - initComponents(): void
+            - loadReservasIntoTable(reservas: List<Reserva>): void
+            - loadReservasIntoTable(): void
+            - clearForm(): void
+            - cargarDatosReservaSeleccionada(): void
+        }
+
+        class ReservaDetailDialog {
+            - reserva: Reserva
+            + ReservaDetailDialog(owner: Window, reserva: Reserva)
+            - initComponents(): void
+            - addDetailRow(panel: JPanel, labelText: String, valueText: String): void
+        }
+    }
+}
+
+
+' ====================================================================================================
+' Clases de arranque de la aplicación (Main)
+' ====================================================================================================
+package "com.cesur.biblioteca" {
+    class GestorBiblioteca {
+        + {static} main(args: String[]): void
+    }
+}
+
+
+' ====================================================================================================
+' Relaciones y Dependencias (actualizadas y más precisas)
+' ====================================================================================================
+
+' Capa de Servicio: Implementa sus interfaces
+UsuarioService .up.|> UsuarioServiceInterface
+ReservaService .up.|> ReservaServiceInterface
+LibroService .up.|> LibroServiceInterface
+
+' Capa de Controladores: Depende de las Clases de Servicio
+UsuarioController --> UsuarioService : usa
+ReservaController --> ReservaService : usa
+LibroController --> LibroService : usa
+
+' Capa de Servicio: Depende de las Clases DAO e Inter-Servicio
+UsuarioService --> UsuarioDAO : usa
+UsuarioService --> ReservaDAO : consulta reservas
+ReservaService --> ReservaDAO : usa
+ReservaService --> LibroService : actualiza estado de libro
+ReservaService --> UsuarioService : gestiona sanción
+LibroService --> LibroDAO : usa
+
+' Capa DAO: Implementa sus interfaces
+UsuarioDAO .up.|> UsuarioDAOInterface
+ReservaDAO .up.|> ReservaDAOInterface
+LibroDAO .up.|> LibroDAOInterface
+
+' Capa DAO: Depende de ConexionBBDD y las Clases de Modelo
+UsuarioDAO ..> ConexionBBDD : usa
+UsuarioDAO ..> Usuario : crea/manipula
+ReservaDAO ..> ConexionBBDD : usa
+ReservaDAO ..> Reserva : crea/manipula
+ReservaDAO ..> Libro : <<asocia>>
+ReservaDAO ..> Usuario : <<asocia>>
+LibroDAO ..> ConexionBBDD : usa
+LibroDAO ..> Libro : crea/manipula
+
+' Clases de Modelo:
+' Una Reserva "tiene" un Libro (representado por libroId) y un Usuario (representado por usuarioId)
+' Esto es una agregación/asociación indirecta a través de IDs en el modelo
+Reserva ..> Libro : <<usa ID>>
+Reserva ..> Usuario : <<usa ID>>
+Reserva --> EstadoReserva : tiene
+
+' ====================================================================================================
+' Relaciones de la Capa de Vista (View Layer)
+' ====================================================================================================
+
+' MainFrame (Ventana principal)
+GestorBiblioteca --> MainFrame : crea instancia y muestra
+
+MainFrame --> UsuarioController : usa (para crear panel)
+MainFrame --> LibroController : usa (para crear panel)
+MainFrame --> ReservaController : usa (para crear panel)
+
+' Paneles de Gestión (dependen de los Controladores)
+UsuarioManagementPanel --> UsuarioController : usa para operaciones
+LibroManagementPanel --> LibroController : usa para operaciones
+ReservaManagementPanel --> ReservaController : usa para operaciones
+
+' Diálogos de Detalle (dependen de las clases de Modelo y son mostrados por los Paneles de Gestión)
+UsuarioManagementPanel ..> UsuarioDetailDialog : muestra
+UsuarioDetailDialog ..> Usuario : muestra detalles de
+LibroManagementPanel ..> LibroDetailDialog : muestra
+LibroDetailDialog ..> Libro : muestra detalles de
+ReservaManagementPanel ..> ReservaDetailDialog : muestra
+ReservaDetailDialog ..> Reserva : muestra detalles de
+
+' Las clases de la vista interactúan con las clases de modelo para mostrar datos
+UsuarioManagementPanel ..> Usuario : muestra/manipula datos
+LibroManagementPanel ..> Libro : muestra/manipula datos
+ReservaManagementPanel ..> Reserva : muestra/manipula datos
+ReservaManagementPanel ..> EstadoReserva : usa
+@enduml
