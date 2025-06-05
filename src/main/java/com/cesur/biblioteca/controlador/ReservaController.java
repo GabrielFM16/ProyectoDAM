@@ -181,10 +181,10 @@ public class ReservaController {
             reservaExistente.setEstado(estado);
         }
         if ("PENDIENTE".equals(estado) && !"PENDIENTE".equals(reservaExistente.getEstado())) {
-            // Si cambiamos el estado de la reserva a algún valor no pendiente, tenemos que incrementar el ejemplar de libro asociado
+            // Si vamos a cambiar el estado de la reserva a algún valor pendiente, tenemos que decrementar el ejemplar de libro asociado
             cambioEstado = "DEC";
         } else if (!"PENDIENTE".equals(estado) && "PENDIENTE".equals(reservaExistente.getEstado())) {
-            // Si cambiamos el estado de la reserva a valor pendiente, tenemos que decrementar el ejemplar de libro asociado.
+            // Si vamos a cambiar el estado de la reserva a valor no pendiente, tenemos que incrementar el ejemplar de libro asociado.
             cambioEstado = "INC";
         }
 
