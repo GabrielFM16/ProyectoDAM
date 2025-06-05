@@ -1,0 +1,52 @@
+<dependencies>
+        <dependency>
+        <groupId>org.mariadb.jdbc</groupId>
+        <artifactId>mariadb-java-client</artifactId>
+        <version>3.3.3</version> </dependency>
+</dependencies>
+
+------------
+
+CREATE DATABASE biblioteca_db;
+
+CREATE USER 'bibliotecario'@'localhost' IDENTIFIED BY '12345';
+GRANT ALL PRIVILEGES ON biblioteca_db.* TO 'bibliotecario'@'localhost';
+FLUSH PRIVILEGES;
+
+USE biblioteca_db;
+
+CREATE TABLE libros (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    titulo VARCHAR(255) NOT NULL,
+    autor VARCHAR(255) NOT NULL,
+    isbn VARCHAR(20) UNIQUE NOT NULL,
+    genero VARCHAR(100),
+    anio_publicacion INT,
+    numero_ejemplares INT NOT NULL DEFAULT 1,
+    disponible BOOLEAN DEFAULT TRUE
+);
+
+CREATE TABLE usuarios (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(255) NOT NULL,
+    apellidos VARCHAR(255) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    telefono VARCHAR(20),
+    activo BOOLEAN NOT NULL DEFAULT TRUE,
+    sancionado BOOLEAN NOT NULL DEFAULT FALSE,
+    fecha_fin_sancion DATE
+);
+
+CREATE TABLE reservas (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    libro_id INT NOT NULL,
+    usuario_id INT NOT NULL,
+    fecha_reserva DATE NOT NULL,
+    fecha_devolucion_prevista DATE NOT NULL,
+    fecha_devolucion_real DATE, -- Puede ser NULL hasta que el libro sea devuelto
+    estado VARCHAR(50) NOT NULL DEFAULT 'PENDIENTE', -- Por defecto, el estado es 'PENDIENTE'
+
+    -- Claves foráneas para relacionar con las tablas 'libros' y 'usuarios'
+    FOREIGN KEY (libro_id) REFERENCES libros(id) ON DELETE CASCADE,
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
+);
